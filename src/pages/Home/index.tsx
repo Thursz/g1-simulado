@@ -4,7 +4,8 @@ import { useTheme } from 'styled-components'
 import { CoffeeCard } from '../../components/CoffeeCard'
 
 import { CoffeeList, Heading, Hero, HeroContent, Info } from './styles'
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { api } from '../../serves/api';
 
 interface Coffee {
   id: string;
@@ -15,25 +16,43 @@ interface Coffee {
   image: string;
   quantity: number;
 };
-
 export function Home() {
   const theme = useTheme();
+  const [coffees, setCoffees] = useState<Coffee[]>([]);
 
   useEffect(() => {
-    // request para a API para pegar os cafés
-    // e setar no estado
+    async function getCoffees() {
+      const result = await api.get<Coffee[]>('/coffees');
+      console.log(result.data);
+      setCoffees(result.data);
+    }
+
+    getCoffees();
   }, []);
 
-
-  
   function incrementQuantity(id: string) {
-    // Aqui você pode fazer a lógica para incrementar a quantidade do café
+    const updatedCoffees = coffees.map(coffee => {
+      if (coffee.id === id) {
+        return { ...coffee, quantity: coffee.quantity + 1 };
+      }
+      return coffee;
+    });
+
+    setCoffees(updatedCoffees);
   }
 
   function decrementQuantity(id: string) {
-    // Aqui você pode fazer a lógica para decrementar a quantidade do café
+    const updatedCoffees = coffees.map(coffee => {
+      if (coffee.id === id && coffee.quantity > 0) {
+        return { ...coffee, quantity: coffee.quantity - 1 };
+      }
+      return coffee;
+    });
+
+    setCoffees(updatedCoffees);
   }
 
+  // ✅ Agora o return está dentro da função!
   return (
     <div>
       <Hero>
@@ -41,7 +60,6 @@ export function Home() {
           <div>
             <Heading>
               <h1>Encontre o café perfeito para qualquer hora do dia</h1>
-
               <span>
                 Com o Coffee Delivery você recebe seu café onde estiver, a
                 qualquer hora
@@ -101,22 +119,16 @@ export function Home() {
         <h2>Nossos cafés</h2>
 
         <div>
-        {[1,2,3].map((coffee) => (
-            <CoffeeCard key={coffee} coffee={{
-              description: 'Café expresso tradicional com espuma cremosa',
-              id: '1',
-              image: "/images/coffees/expresso-cremoso.png",
-              price: 9.90,
-              tags: ['Tradicional', 'Comum'],
-              title: 'Expresso Tradicional',
-              quantity: 1,
-            }}
-            incrementQuantity={incrementQuantity}
-            decrementQuantity={decrementQuantity}
+          {coffees.map((coffee) => (
+            <CoffeeCard
+              key={coffee.id}
+              coffee={coffee}
+              incrementQuantity={incrementQuantity}
+              decrementQuantity={decrementQuantity}
             />
           ))}
         </div>
       </CoffeeList>
     </div>
-  )
+  );
 }
