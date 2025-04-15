@@ -25,6 +25,7 @@ export function Home() {
       const result = await api.get<Coffee[]>('/coffees');
       console.log(result.data);
       setCoffees(result.data);
+      
     }
 
     getCoffees();
